@@ -51,18 +51,19 @@ document.addEventListener('DOMContentLoaded', function(){
                 method: "POST",
                 headers: myHeaders,
                 body: graphql,
+                redirect: "follow"
             };
 
-          const response = await fetch(proxyUrl+targetUrl, requestOptions);
-
-
+        //   const response = await fetch(proxyUrl+targetUrl, requestOptions);
+            const response = await fetch(`https://leetcode-stats-api.herokuapp.com/${username}`);
             if(!response.ok){
                 throw new Error("Unable to fetch the user details");
             }
             const parsedata = await response.json();
             console.log("logging data:", parsedata);
 
-            displayUserData(data);
+            // displayUserData(data);
+            displayUserData(parsedata);
         }
         catch(error) {
             statsContainer.innerHTML = `<p>No data Found</p>`
@@ -73,26 +74,58 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     }
 
-    function updateProgress(solved,total,label,circle) {
-        const progressDegree = total > 0 ? (solved / total) * 100 : 0;
-        circle.style.setProperty("--progress-degree",`${progressDegree}%`)
-        label.textContent = `${solved}/${total}`;
+    // function updateProgress(solved,total) {
+    //     const progressDegree = total > 0 ? (solved / total) * 100 : 0;
+    //     console.log("pd", progressDegree);
+    //     circle.style.setProperty("--progress-degree",`${progressDegree}%`)
+    //     // label.textContent = `${solved}/${total}`;
+    // }
+
+    function updateProgress(circleSelector, labelSelector, solved, total) {
+    const circle = document.querySelector(circleSelector);
+    const label  = document.querySelector(labelSelector);
+
+    if (!circle || !label) return; // safety
+
+    const progressPercent = total > 0 ? (solved / total) * 100 : 0;
+
+    // For your circular progress CSS (using a CSS variable)
+    circle.style.setProperty("--progress-degree", `${progressPercent}%`);
+
+    // Set text inside span: "solved/total (xx%)"
+    label.textContent = `${solved}/${total} (${progressPercent.toFixed(1)}%)`;
     }
 
+
     function displayUserData(parsedata) {
-        const totalQues = parsedata.data.allQuestionsCount[0].count;
-        const totalEasyQues = parsedata.data.allQuestionsCount[1].count;
-        const totalMediumQues = parsedata.data.allQuestionsCount[2].count;
-        const totalHardQues = parsedata.data.allQuestionsCount[3].count;
+        // const totalQues = parsedata.data.allQuestionsCount[0].count;
+        // const totalEasyQues = parsedata.data.allQuestionsCount[1].count;
+        // const totalMediumQues = parsedata.data.allQuestionsCount[2].count;
+        // const totalHardQues = parsedata.data.allQuestionsCount[3].count;
 
-        const solvedTotalQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[0].count;
-        const solvedTotalEasyQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[1].count;
-        const solvedTotalMediumQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[2].count;
-        const solvedTotalHardQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[3].count;
+        const totalQues = parsedata.totalQuestions;
+        const totalEasyQues = parsedata.totalEasy;
+        const totalMediumQues = parsedata.totalMedium;
+        const totalHardQues = parsedata.totalHard;
 
-        updateProgress(solvedTotalEasyQues, totalEasyQues, easyLabel,easyProgressCircle);
-        updateProgress(solvedTotalMediumQues, totalMediumQues, mediumLabel,mediumProgressCircle);
-        updateProgress(solvedTotalHardQues, totalHardQues, hardLabel,hardProgressCircle);
+        // const solvedTotalQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[0].count;
+        // const solvedTotalEasyQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[1].count;
+        // const solvedTotalMediumQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[2].count;
+        // const solvedTotalHardQues = parsedata.data.matchedUser.submitStats.acSubmissionNum[3].count;
+
+        const solvedTotalQues = parsedata.totalSolved;
+        const solvedTotalEasyQues = parsedata.totalEasy;
+        const solvedTotalMediumQues = parsedata.totalMedium;
+        const solvedTotalHardQues = parsedata.totalHard;
+        
+        // updateProgress(solvedTotalEasyQues, totalEasyQues, easyLabel,easyProgressCircle);
+        // updateProgress(solvedTotalMediumQues, totalMediumQues, mediumLabel,mediumProgressCircle);
+        // updateProgress(solvedTotalHardQues, totalHardQues, hardLabel,hardProgressCircle);
+
+        updateProgress(".easy-progress",  "#easy-label",  solvedTotalEasyQues,   totalEasyQues);
+        updateProgress(".medium-progress","#medium-label", solvedTotalMediumQues, totalMediumQues);
+        updateProgress(".hard-progress",  "#hard-label",  solvedTotalHardQues,   totalHardQues);
+
     }
 
     searchButton.addEventListener('click', function(){
